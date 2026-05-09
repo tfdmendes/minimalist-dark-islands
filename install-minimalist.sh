@@ -354,6 +354,9 @@ body "    workbench.editor.empty.hint     = hidden"
 body "    workbench.startupEditor         = none"
 body "    workbench.tree.indent           = 6"
 body "    workbench.tree.renderIndentGuides = always"
+body "    editor.scrollbar.vertical       = visible"
+body "    editor.scrollbar.horizontal     = auto"
+body "    workbench.colorCustomizations   = One Dark surface palette"
 printf "\n"
 hint "Activity bar position is asked separately in the next step."
 
@@ -558,7 +561,14 @@ PANEL_GLASS_OVERRIDE_SELECTORS = [
     ".monaco-workbench .part.sidebar .content",
     ".monaco-workbench .part.sidebar .monaco-pane-view",
     ".monaco-workbench .part.sidebar .split-view-container",
+    ".monaco-workbench .part.sidebar .split-view-view",
+    ".monaco-workbench .part.sidebar .pane",
     ".monaco-workbench .part.sidebar .pane-body",
+    ".monaco-workbench .part.sidebar .monaco-list",
+    ".monaco-workbench .part.sidebar .monaco-list-rows",
+    ".monaco-workbench .part.sidebar .monaco-tree",
+    ".monaco-workbench .part.sidebar .monaco-scrollable-element",
+    ".monaco-workbench .part.sidebar .explorer-folders-view",
 ]
 
 PANE_COMPOSITE_ACTIVITY_SELECTORS = [
@@ -597,8 +607,8 @@ LEGACY_LAYOUT_OVERRIDE_SELECTORS = [
 # CSS that the top/bottom variants apply on top of the activity-bar
 # rules. These are higher-specificity copies of the floating-panel
 # styling, plus a canvas background on the top-level grid so the
-# margins between the panels reveal the right color. Inner pane
-# containers stay transparent to avoid dark rectangles inside Explorer.
+# margins between the panels reveal the right color. Sidebar internals
+# are painted with the sidebar token so empty space matches file rows.
 PANEL_GLASS_OVERRIDES = {
     ".monaco-workbench .part.sidebar": {
         "margin": "var(--islands-panel-top) var(--islands-panel-gap) var(--islands-panel-gap) var(--islands-panel-gap) !important",
@@ -608,7 +618,7 @@ PANEL_GLASS_OVERRIDES = {
         "position": "relative !important",
         "z-index": "1 !important",
         "isolation": "isolate !important",
-        "background-color": "var(--islands-bg-surface) !important",
+        "background-color": "var(--islands-bg-sidebar) !important",
         "max-height": "calc(100% - var(--islands-panel-top) - var(--islands-panel-gap) - 2px) !important",
         "border-top": "1px solid rgba(255,255,255,0.1) !important",
         "border-left": "1px solid rgba(255,255,255,0.06) !important",
@@ -652,16 +662,37 @@ PANEL_GLASS_OVERRIDES = {
         "background-color": "var(--islands-bg-canvas) !important",
     },
     ".monaco-workbench .part.sidebar .content": {
-        "background-color": "transparent !important",
+        "background-color": "var(--islands-bg-sidebar) !important",
     },
     ".monaco-workbench .part.sidebar .monaco-pane-view": {
-        "background-color": "transparent !important",
+        "background-color": "var(--islands-bg-sidebar) !important",
     },
     ".monaco-workbench .part.sidebar .split-view-container": {
-        "background-color": "transparent !important",
+        "background-color": "var(--islands-bg-sidebar) !important",
+    },
+    ".monaco-workbench .part.sidebar .split-view-view": {
+        "background-color": "var(--islands-bg-sidebar) !important",
+    },
+    ".monaco-workbench .part.sidebar .pane": {
+        "background-color": "var(--islands-bg-sidebar) !important",
     },
     ".monaco-workbench .part.sidebar .pane-body": {
-        "background-color": "transparent !important",
+        "background-color": "var(--islands-bg-sidebar) !important",
+    },
+    ".monaco-workbench .part.sidebar .monaco-list": {
+        "background-color": "var(--islands-bg-sidebar) !important",
+    },
+    ".monaco-workbench .part.sidebar .monaco-list-rows": {
+        "background-color": "var(--islands-bg-sidebar) !important",
+    },
+    ".monaco-workbench .part.sidebar .monaco-tree": {
+        "background-color": "var(--islands-bg-sidebar) !important",
+    },
+    ".monaco-workbench .part.sidebar .monaco-scrollable-element": {
+        "background-color": "var(--islands-bg-sidebar) !important",
+    },
+    ".monaco-workbench .part.sidebar .explorer-folders-view": {
+        "background-color": "var(--islands-bg-sidebar) !important",
     },
 }
 
@@ -676,7 +707,7 @@ PANE_COMPOSITE_ACTIVITY_SHARED = {
         "overflow": "visible !important",
     },
     ".monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar": {
-        "background": "color-mix(in srgb, var(--islands-bg-canvas), var(--islands-bg-surface) 30%) !important",
+        "background": "color-mix(in srgb, var(--islands-bg-canvas), var(--islands-bg-sidebar) 55%) !important",
         "border-radius": "9999px !important",
         "overflow": "visible !important",
         "padding": "3px 8px !important",
@@ -874,11 +905,24 @@ if do_apply_settings:
         "workbench.startupEditor",
         "workbench.tree.indent",
         "workbench.tree.renderIndentGuides",
+        "editor.scrollbar.vertical",
+        "editor.scrollbar.horizontal",
+        "editor.scrollbar.verticalScrollbarSize",
+        "editor.scrollbar.horizontalScrollbarSize",
+        "editor.scrollbar.useShadows",
     ]
     for key in keys_to_copy:
         if key in repo:
             user[key] = repo[key]
             print("    - set {} = {}".format(key, json.dumps(repo[key])))
+
+    if isinstance(repo.get("workbench.colorCustomizations"), dict):
+        existing_colors = user.get("workbench.colorCustomizations")
+        if not isinstance(existing_colors, dict):
+            existing_colors = {}
+        existing_colors.update(repo["workbench.colorCustomizations"])
+        user["workbench.colorCustomizations"] = existing_colors
+        print("    - merged workbench.colorCustomizations surface palette")
 
 if do_set_icon:
     user["workbench.iconTheme"] = "vs-seti-folder"

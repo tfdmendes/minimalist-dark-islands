@@ -7,6 +7,7 @@ This is a personal minimalist fork of `bwya77/vscode-dark-islands`. The goal is 
 ### CHANGED
 - `settings.json` no longer forces `workbench.colorTheme: "Islands Dark"`. The CSS variables drive the look, so users can keep their own theme (e.g. One Dark Pro Mix) and the panels/activity bar/status bar will adopt the canvas/surface colors below.
 - Canvas/surface tuned to dark gray instead of near-black: `--islands-bg-canvas: #1c1f25`, `--islands-bg-surface: #282c34`. Pairs better with One Dark Pro Mix and similar themes.
+- Workbench surface colors are now pinned through `workbench.colorCustomizations`, using the actual One Dark Pro Mix split: sidebar/activity/title/status `#21252b`, editor/terminal `#282c34`.
 - `workbench.tree.indent` reduced from 16 to 6 to match the more compact look of the screenshot.
 
 ### ADDED
@@ -30,6 +31,7 @@ This is a personal minimalist fork of `bwya77/vscode-dark-islands`. The goal is 
 - Removed canvas backgrounds from sidebar internals in non-default layouts to avoid the darker rectangle below the Explorer file list.
 - Isolated panel border animations from the title bar so opened files no longer visually cover the top bar.
 - Scrollbar thumbs no longer override VS Code's hidden state, so panes do not show scrollbars until VS Code actually needs to show them.
+- Editor scrollbars use native editor settings plus an editor-scoped Monaco override, keeping the editor scrollbar visible without making sidebar/panel scrollbars appear everywhere.
 
 ---
 
