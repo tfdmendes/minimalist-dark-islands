@@ -78,6 +78,14 @@
    making the glass borders feel alive.
    ============================================================= */
 
+.part.sidebar,
+.part.editor,
+.part.auxiliarybar,
+.part.panel.bottom {
+  position: relative !important;
+  isolation: isolate !important;
+}
+
 .part.sidebar::after,
 .part.editor::after,
 .part.auxiliarybar::after,
@@ -103,7 +111,7 @@
     linear-gradient(#fff 0 0) !important;
   -webkit-mask-composite: xor !important;
   pointer-events: none !important;
-  z-index: 999 !important;
+  z-index: 2 !important;
   animation: islands-aurora 8s linear infinite !important;
 }
 
@@ -172,4 +180,3 @@
 .notifications-center {
   animation: islands-emerge 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
-

@@ -1,4 +1,23 @@
-# Islands Dark
+# Minimalist Dark Islands
+
+> Personal fork of [`bwya77/vscode-dark-islands`](https://github.com/bwya77/vscode-dark-islands) with a slimmer top bar, a horizontal activity bar, and a softer palette tuned to play nicely with One Dark Pro Mix.
+
+## What changed in this fork
+
+The upstream theme is excellent but it forces a near-black canvas (`#121216`) and assumes the activity bar lives on the left. This fork keeps the same floating glass islands look while:
+
+- Letting you keep your own color theme. The recommended `settings.json` no longer sets `workbench.colorTheme`, so the look inherits from whatever you already use (tested with One Dark Pro Mix).
+- Using a softer dark gray palette (`--islands-bg-canvas: #1c1f25`, `--islands-bg-surface: #282c34`).
+- Defaulting to a minimalist top bar: no command center pill, slim 30px title bar that just shows "Visual Studio Code".
+- Supporting all four activity-bar positions (`default`, `top`, `bottom`, `hidden`). The interactive installer rewrites the activity-bar/composite-bar CSS rules to a position-specific variant so the glass effect renders consistently regardless of where the icons live.
+- Making the icon glow effect (`drop-shadow` on file icons) opt-in instead of always on. The default in the installer is off.
+- The interactive installer (`install-minimalist.sh`) is authoritative on every run: re-running with different choices fully reapplies your selection, including switching between activity-bar layouts.
+
+If you want the original look, install upstream from the link above. The rest of this README is upstream's install/customization documentation, still valid for this fork.
+
+---
+
+# Islands Dark (upstream)
 
 <a href="https://www.buymeacoffee.com/bwya77" style="margin-right: 10px;">
     <img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" />

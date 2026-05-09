@@ -1,10 +1,21 @@
 {
-  "// Islands Dark Settings v0.0.2": "",
-  "workbench.colorTheme": "Islands Dark",
+  "// Minimalist Dark Islands Settings v0.1.0 (fork)": "",
+  "// Note": "Color theme is intentionally not forced here. Keep your own (e.g. One Dark Pro Mix) and the glass/island look will inherit its palette via the CSS variables below.",
+
+  "// Minimalist top bar settings": "",
+  "// activityBar.location is intentionally NOT set here. The install script asks": "",
+  "// the user which position they prefer (default/top/bottom/hidden) and writes": "",
+  "// the matching CSS variant + the setting itself.": "",
+  "window.commandCenter": false,
+  "workbench.layoutControl.enabled": false,
+  "workbench.editor.empty.hint": "hidden",
+  "workbench.startupEditor": "none",
+
+  "// Editor / typography (optional, keep what you like)": "",
   "editor.fontFamily": "IBM Plex Mono",
   "terminal.integrated.fontFamily": "FiraCode Nerd Font Mono",
   "editor.lineHeight": 1.8,
-  "workbench.tree.indent": 16,
+  "workbench.tree.indent": 6,
   "workbench.tree.renderIndentGuides": "always",
   "editor.minimap.showSlider": "always",
   "custom-ui-style.stylesheet": {
@@ -15,8 +26,9 @@
       "--islands-item-radius": "6px",
       "--islands-panel-gap": "6px",
       "--islands-panel-top": "6px",
-      "--islands-bg-canvas": "#121216",
-      "--islands-bg-surface": "#181a1d",
+      "// Canvas / surface tuned for One Dark Pro Mix (dark gray, not pure black)": "",
+      "--islands-bg-canvas": "#1c1f25",
+      "--islands-bg-surface": "#282c34",
       "background-color": "var(--islands-bg-canvas) !important"
    },
    ".part.sidebar": {
@@ -24,6 +36,11 @@
       "margin": "var(--islands-panel-top) var(--islands-panel-gap) 0 var(--islands-panel-gap)",
       "border-radius": "var(--islands-panel-radius) !important",
       "overflow": "hidden !important",
+      "box-sizing": "border-box !important",
+      "position": "relative !important",
+      "z-index": "1 !important",
+      "isolation": "isolate !important",
+      "background-color": "var(--islands-bg-surface) !important",
       "max-height": "calc(100% - 8px) !important",
       "border-top": "1px solid rgba(255,255,255,0.1) !important",
       "border-left": "1px solid rgba(255,255,255,0.06) !important",
@@ -44,7 +61,17 @@
    ".part.sidebar .content": {
       "width": "calc(100% - 20px) !important",
       "padding-left": "10px !important",
-      "margin-left": "6px !important"
+      "margin-left": "6px !important",
+      "background-color": "transparent !important"
+   },
+   ".part.sidebar .monaco-pane-view": {
+      "background-color": "transparent !important"
+   },
+   ".part.sidebar .split-view-container": {
+      "background-color": "transparent !important"
+   },
+   ".part.sidebar .pane-body": {
+      "background-color": "transparent !important"
    },
    ".part.sidebar .welcome-view-content": {
       "max-width": "100% !important",
@@ -109,6 +136,11 @@
       "margin": "var(--islands-panel-top) var(--islands-panel-gap) 0 var(--islands-panel-gap)",
       "border-radius": "var(--islands-panel-radius) !important",
       "overflow": "hidden !important",
+      "box-sizing": "border-box !important",
+      "position": "relative !important",
+      "z-index": "1 !important",
+      "isolation": "isolate !important",
+      "background-color": "var(--islands-bg-surface) !important",
       "max-height": "calc(100% - var(--islands-panel-top) - 2px) !important",
       "border-top": "1px solid rgba(255,255,255,0.12) !important",
       "border-left": "1px solid rgba(255,255,255,0.08) !important",
@@ -295,9 +327,12 @@
       "border-radius": "10px !important",
       "width": "calc(100% - 14px) !important"
    },
-    ".part.activitybar": {
-       "background": "var(--islands-bg-canvas) !important",
-       "margin": "8px 0 30px 0",
+   "// ──────────────────────────────────────────────────────────────": "",
+   "// Activity bar — vertical pill on the left (upstream design, requires location:default)": "",
+   "// ──────────────────────────────────────────────────────────────": "",
+   ".part.activitybar": {
+      "background": "var(--islands-bg-canvas) !important",
+      "margin": "8px 0 30px 0",
       "overflow": "visible !important",
       "width": "54px !important"
    },
@@ -367,8 +402,25 @@
       "transform": "scale(0.8) !important",
       "transform-origin": "top right !important"
    },
+   "// ──────────────────────────────────────────────────────────────": "",
+   "// Title bar — slim, minimalist, just shows 'Visual Studio Code'": "",
+   "// ──────────────────────────────────────────────────────────────": "",
    ".part.titlebar": {
-      "background-color": "var(--islands-bg-canvas) !important"
+      "background-color": "var(--islands-bg-canvas) !important",
+      "height": "30px !important",
+      "min-height": "30px !important",
+      "position": "relative !important",
+      "z-index": "20 !important",
+      "border-bottom": "none !important"
+   },
+   ".part.titlebar .window-title": {
+      "font-family": "'Bear Sans UI', sans-serif !important",
+      "font-size": "12px !important",
+      "opacity": "0.5 !important",
+      "transition": "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important"
+   },
+   ".part.titlebar:hover .window-title": {
+      "opacity": "0.85 !important"
    },
    ".part.statusbar": {
       "background-color": "var(--islands-bg-canvas) !important",
@@ -453,6 +505,11 @@
       "margin": "var(--islands-panel-top) var(--islands-panel-gap) 0 var(--islands-panel-gap)",
       "border-radius": "var(--islands-panel-radius) !important",
       "overflow": "hidden !important",
+      "box-sizing": "border-box !important",
+      "position": "relative !important",
+      "z-index": "1 !important",
+      "isolation": "isolate !important",
+      "background-color": "var(--islands-bg-surface) !important",
       "max-height": "calc(100% - var(--islands-panel-top) - 2px) !important",
       "border-top": "1px solid rgba(255,255,255,0.1) !important",
       "border-left": "1px solid rgba(255,255,255,0.06) !important",
@@ -492,9 +549,23 @@
       "background": "linear-gradient(135deg, rgba(49,50,56,0.7), rgba(37,38,44,0.5)) !important",
       "box-shadow": "inset 0 0 0 1px rgba(255,255,255,0.06) !important"
    },
-   ".scrollbar .slider": {
+   "// Scrollbar slider — style thumbs only when VS Code decides to show them": "",
+   ".monaco-scrollable-element > .scrollbar": {
+      "background": "transparent !important"
+   },
+   ".monaco-scrollable-element > .scrollbar > .slider": {
       "border-radius": "9999px !important",
-      "transition": "opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important"
+      "background": "rgba(188,190,196,0.18) !important",
+      "background-color": "rgba(188,190,196,0.18) !important",
+      "transition": "background 0.2s ease, background-color 0.2s ease !important"
+   },
+   ".monaco-scrollable-element > .scrollbar:hover > .slider": {
+      "background": "rgba(188,190,196,0.28) !important",
+      "background-color": "rgba(188,190,196,0.28) !important"
+   },
+   ".monaco-scrollable-element > .scrollbar > .slider.active": {
+      "background": "rgba(188,190,196,0.38) !important",
+      "background-color": "rgba(188,190,196,0.38) !important"
    },
    ".monaco-count-badge": {
       "border-radius": "9999px !important",
