@@ -614,7 +614,7 @@
       "background": "rgba(188,190,196,0.38) !important",
       "background-color": "rgba(188,190,196,0.38) !important"
    },
-   ".monaco-editor .monaco-scrollable-element > .scrollbar.vertical": {
+   ".part.editor .monaco-scrollable-element > .scrollbar.vertical": {
       "display": "block !important",
       "opacity": "1 !important",
       "visibility": "visible !important",
@@ -623,18 +623,39 @@
       "right": "1px !important",
       "background": "transparent !important"
    },
-   ".monaco-editor .monaco-scrollable-element > .scrollbar.vertical > .slider": {
+   ".part.editor .monaco-scrollable-element > .scrollbar.vertical.invisible": {
+      "display": "block !important",
       "opacity": "1 !important",
+      "visibility": "visible !important",
+      "pointer-events": "auto !important"
+   },
+   ".part.editor .scrollbar.vertical": {
+      "display": "block !important",
+      "opacity": "1 !important",
+      "visibility": "visible !important"
+   },
+   ".part.editor .monaco-scrollable-element > .scrollbar.vertical > .slider": {
+      "opacity": "1 !important",
+      "display": "block !important",
+      "visibility": "visible !important",
       "width": "8px !important",
+      "min-width": "8px !important",
       "border-radius": "9999px !important",
       "background": "#4e566660 !important",
       "background-color": "#4e566660 !important"
    },
-   ".monaco-editor .monaco-scrollable-element > .scrollbar.vertical:hover > .slider": {
+   ".part.editor .monaco-scrollable-element > .scrollbar.vertical.invisible > .slider": {
+      "opacity": "1 !important",
+      "display": "block !important",
+      "visibility": "visible !important",
+      "background": "#4e566660 !important",
+      "background-color": "#4e566660 !important"
+   },
+   ".part.editor .monaco-scrollable-element > .scrollbar.vertical:hover > .slider": {
       "background": "#5a637580 !important",
       "background-color": "#5a637580 !important"
    },
-   ".monaco-editor .monaco-scrollable-element > .scrollbar.vertical > .slider.active": {
+   ".part.editor .monaco-scrollable-element > .scrollbar.vertical > .slider.active": {
       "background": "#747d9180 !important",
       "background-color": "#747d9180 !important"
    },
