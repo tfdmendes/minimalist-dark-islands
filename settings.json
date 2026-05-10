@@ -18,11 +18,6 @@
   "workbench.tree.indent": 6,
   "workbench.tree.renderIndentGuides": "always",
   "editor.minimap.showSlider": "always",
-  "editor.scrollbar.vertical": "visible",
-  "editor.scrollbar.horizontal": "auto",
-  "editor.scrollbar.verticalScrollbarSize": 10,
-  "editor.scrollbar.horizontalScrollbarSize": 10,
-  "editor.scrollbar.useShadows": false,
   "workbench.colorCustomizations": {
     "activityBar.background": "#21252b",
     "editor.background": "#282c34",
@@ -51,6 +46,8 @@
       "--islands-item-radius": "6px",
       "--islands-panel-gap": "6px",
       "--islands-panel-top": "6px",
+      "--islands-floating-editor-width": "min(78vw, 1040px)",
+      "--islands-floating-editor-height": "min(68vh, 720px)",
       "// Canvas / surface tuned for One Dark Pro Mix (dark gray, not pure black)": "",
       "--islands-bg-canvas": "#1c1f25",
       "--islands-bg-sidebar": "#21252b",
@@ -184,9 +181,6 @@
       "border-radius": "var(--islands-panel-radius) !important",
       "overflow": "hidden !important",
       "box-sizing": "border-box !important",
-      "position": "relative !important",
-      "z-index": "1 !important",
-      "isolation": "isolate !important",
       "background-color": "var(--islands-bg-surface) !important",
       "max-height": "calc(100% - var(--islands-panel-top) - 2px) !important",
       "border-top": "1px solid rgba(255,255,255,0.12) !important",
@@ -463,11 +457,89 @@
    ".part.titlebar .window-title": {
       "font-family": "'Bear Sans UI', sans-serif !important",
       "font-size": "12px !important",
+      "height": "30px !important",
+      "line-height": "30px !important",
+      "display": "flex !important",
+      "align-items": "center !important",
+      "justify-content": "center !important",
+      "box-sizing": "border-box !important",
       "opacity": "0.5 !important",
       "transition": "opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important"
    },
    ".part.titlebar:hover .window-title": {
       "opacity": "0.85 !important"
+   },
+   "// Floating editor / auxiliary windows": "",
+   ".monaco-workbench:has(> .part.editor):not(:has(> .part.sidebar)):not(:has(> .part.activitybar)):not(:has(> .part.panel))": {
+      "--islands-floating-editor-width": "min(78vw, 1040px)",
+      "--islands-floating-editor-height": "min(68vh, 720px)",
+      "display": "flex !important",
+      "flex-direction": "column !important",
+      "align-items": "center !important",
+      "justify-content": "center !important",
+      "gap": "0 !important",
+      "padding": "24px !important",
+      "box-sizing": "border-box !important"
+   },
+   ".monaco-workbench.auxiliary-window .part.titlebar, .monaco-workbench.auxiliary .part.titlebar, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.titlebar": {
+      "width": "var(--islands-floating-editor-width) !important",
+      "max-width": "calc(100vw - 48px) !important",
+      "align-self": "center !important",
+      "flex": "0 0 34px !important",
+      "height": "34px !important",
+      "min-height": "34px !important",
+      "padding-top": "2px !important",
+      "box-sizing": "border-box !important",
+      "overflow": "visible !important",
+      "z-index": "40 !important"
+   },
+   ".monaco-workbench.auxiliary-window .part.titlebar .window-title, .monaco-workbench.auxiliary .part.titlebar .window-title, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.titlebar .window-title": {
+      "height": "32px !important",
+      "line-height": "32px !important",
+      "display": "flex !important",
+      "align-items": "center !important",
+      "justify-content": "center !important",
+      "padding-top": "0 !important",
+      "box-sizing": "border-box !important",
+      "transform": "none !important"
+   },
+   ".monaco-workbench.auxiliary-window .part.editor, .monaco-workbench.auxiliary .part.editor, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.editor": {
+      "width": "var(--islands-floating-editor-width) !important",
+      "height": "var(--islands-floating-editor-height) !important",
+      "max-width": "calc(100vw - 48px) !important",
+      "max-height": "calc(100vh - 118px) !important",
+      "min-width": "min(680px, calc(100vw - 48px)) !important",
+      "min-height": "min(420px, calc(100vh - 118px)) !important",
+      "flex": "0 1 var(--islands-floating-editor-height) !important",
+      "align-self": "center !important",
+      "margin": "0 auto var(--islands-panel-gap) auto !important",
+      "border-radius": "var(--islands-panel-radius) !important",
+      "overflow": "hidden !important",
+      "box-sizing": "border-box !important",
+      "position": "relative !important",
+      "background-color": "var(--islands-bg-surface) !important",
+      "border-top": "1px solid rgba(255,255,255,0.12) !important",
+      "border-left": "1px solid rgba(255,255,255,0.08) !important",
+      "border-bottom": "1px solid rgba(255,255,255,0.03) !important",
+      "border-right": "1px solid rgba(255,255,255,0.03) !important",
+      "box-shadow": "0 2px 8px 0 rgba(0,0,0,0.3) !important"
+   },
+   ".monaco-workbench.auxiliary-window .part.editor > .content, .monaco-workbench.auxiliary .part.editor > .content, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.editor > .content": {
+      "width": "100% !important",
+      "height": "100% !important",
+      "padding-top": "0 !important",
+      "overflow": "hidden !important"
+   },
+   ".monaco-workbench.auxiliary-window .part.editor > .content .editor-group-container > .title, .monaco-workbench.auxiliary .part.editor > .content .editor-group-container > .title, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.editor > .content .editor-group-container > .title": {
+      "padding-top": "3px !important",
+      "box-sizing": "border-box !important",
+      "overflow": "visible !important"
+   },
+   ".monaco-workbench.auxiliary-window .part.statusbar, .monaco-workbench.auxiliary .part.statusbar, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.statusbar": {
+      "width": "var(--islands-floating-editor-width) !important",
+      "max-width": "calc(100vw - 48px) !important",
+      "align-self": "center !important",
+      "flex": "0 0 auto !important"
    },
    ".part.statusbar": {
       "background-color": "var(--islands-bg-canvas) !important",
@@ -613,51 +685,6 @@
    ".monaco-scrollable-element > .scrollbar > .slider.active": {
       "background": "rgba(188,190,196,0.38) !important",
       "background-color": "rgba(188,190,196,0.38) !important"
-   },
-   ".part.editor .monaco-scrollable-element > .scrollbar.vertical": {
-      "display": "block !important",
-      "opacity": "1 !important",
-      "visibility": "visible !important",
-      "pointer-events": "auto !important",
-      "width": "10px !important",
-      "right": "1px !important",
-      "background": "transparent !important"
-   },
-   ".part.editor .monaco-scrollable-element > .scrollbar.vertical.invisible": {
-      "display": "block !important",
-      "opacity": "1 !important",
-      "visibility": "visible !important",
-      "pointer-events": "auto !important"
-   },
-   ".part.editor .scrollbar.vertical": {
-      "display": "block !important",
-      "opacity": "1 !important",
-      "visibility": "visible !important"
-   },
-   ".part.editor .monaco-scrollable-element > .scrollbar.vertical > .slider": {
-      "opacity": "1 !important",
-      "display": "block !important",
-      "visibility": "visible !important",
-      "width": "8px !important",
-      "min-width": "8px !important",
-      "border-radius": "9999px !important",
-      "background": "#4e566660 !important",
-      "background-color": "#4e566660 !important"
-   },
-   ".part.editor .monaco-scrollable-element > .scrollbar.vertical.invisible > .slider": {
-      "opacity": "1 !important",
-      "display": "block !important",
-      "visibility": "visible !important",
-      "background": "#4e566660 !important",
-      "background-color": "#4e566660 !important"
-   },
-   ".part.editor .monaco-scrollable-element > .scrollbar.vertical:hover > .slider": {
-      "background": "#5a637580 !important",
-      "background-color": "#5a637580 !important"
-   },
-   ".part.editor .monaco-scrollable-element > .scrollbar.vertical > .slider.active": {
-      "background": "#747d9180 !important",
-      "background-color": "#747d9180 !important"
    },
    ".monaco-count-badge": {
       "border-radius": "9999px !important",

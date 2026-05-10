@@ -1,67 +1,55 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
-# Islands Dark Theme Bootstrap Installer
-# One-liner: curl -fsSL https://raw.githubusercontent.com/bwya77/vscode-dark-islands/main/bootstrap.sh | bash
+# Minimalist Dark Islands Bootstrap Installer
+# One-liner:
+#   curl -fsSL https://raw.githubusercontent.com/tfdmendes/minimalist-dark-islands/main/bootstrap.sh | bash
 
-echo "🏝️  Islands Dark Theme Bootstrap Installer"
-echo "=========================================="
+REPO_URL="${MINIMALIST_DARK_ISLANDS_REPO:-https://github.com/tfdmendes/minimalist-dark-islands.git}"
+BRANCH="${MINIMALIST_DARK_ISLANDS_BRANCH:-main}"
+INSTALL_DIR="${TMPDIR:-/tmp}/minimalist-dark-islands-temp"
+
+echo "Minimalist Dark Islands Bootstrap Installer"
+echo "==========================================="
 echo ""
 
-REPO_URL="https://github.com/bwya77/vscode-dark-islands.git"
-INSTALL_DIR="$HOME/.islands-dark-temp"
-
-# Detect OS
-if [[ "$OSTYPE" == "darwin"* ]]; then
-    OS="macOS"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-    OS="Linux"
-else
-    OS="Linux"
+if ! command -v git >/dev/null 2>&1; then
+    echo "Error: git is required to download the installer."
+    exit 1
 fi
 
-echo "📥 Step 1: Downloading Islands Dark..."
-echo "   Repository: $REPO_URL"
+echo "Step 1: Downloading Minimalist Dark Islands..."
+echo "Repository: $REPO_URL"
 
-# Remove old temp directory if exists
 rm -rf "$INSTALL_DIR"
 
-
-# Clone repository
-BRANCH="main"
 if ! git clone "$REPO_URL" "$INSTALL_DIR" --quiet --branch "$BRANCH"; then
-    echo "❌ Failed to download Islands Dark"
+    echo "Error: failed to download Minimalist Dark Islands."
     exit 1
 fi
 
-echo "✓ Downloaded successfully!"
+echo "Downloaded successfully."
 echo ""
 
-echo "🚀 Step 2: Running installer..."
+echo "Step 2: Running installer..."
 echo ""
 
-# Run appropriate installer
-if [[ "$OS" == "macOS" ]] || [[ "$OS" == "Linux" ]]; then
-    cd "$INSTALL_DIR"
-    bash install.sh
-else
-    echo "⚠️  Automatic installation not supported for this OS"
-    echo "   Please manually run: cd $INSTALL_DIR && ./install.sh"
-    exit 1
-fi
-
-# Cleanup (optional - keeps the temp directory)
-echo ""
-echo "🧹 Step 3: Cleaning up..."
-read -p "   Remove temporary files? (y/n) " -n 1 -r
-echo ""
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    rm -rf "$INSTALL_DIR"
-    echo "✓ Temporary files removed"
-else
-    echo "   Files kept at: $INSTALL_DIR"
-fi
+cd "$INSTALL_DIR"
+bash install-minimalist.sh
 
 echo ""
-echo -e "🎉 Done! Enjoy your Islands Dark theme!"
+echo "Step 3: Cleaning up..."
+read -r -p "Remove temporary files? [y/N] " REMOVE_TEMP
+case "$REMOVE_TEMP" in
+    y|Y|yes|YES)
+        rm -rf "$INSTALL_DIR"
+        echo "Temporary files removed."
+        ;;
+    *)
+        echo "Files kept at: $INSTALL_DIR"
+        ;;
+esac
+
+echo ""
+echo "Done. Enjoy Minimalist Dark Islands."

@@ -1,61 +1,69 @@
-# Islands Dark Theme Bootstrap Installer for Windows
-# One-liner: irm https://raw.githubusercontent.com/bwya77/vscode-dark-islands/main/bootstrap.ps1 | iex
+# Minimalist Dark Islands Bootstrap Installer for Windows
+# One-liner:
+#   irm https://raw.githubusercontent.com/tfdmendes/minimalist-dark-islands/main/bootstrap.ps1 | iex
 
 param()
 
 $ErrorActionPreference = "Stop"
 
-echo "🏝️  Islands Dark Theme Bootstrap Installer"
-echo "=========================================="
-echo ""
+$RepoUrl = if ($env:MINIMALIST_DARK_ISLANDS_REPO) {
+    $env:MINIMALIST_DARK_ISLANDS_REPO
+} else {
+    "https://github.com/tfdmendes/minimalist-dark-islands.git"
+}
+$Branch = if ($env:MINIMALIST_DARK_ISLANDS_BRANCH) {
+    $env:MINIMALIST_DARK_ISLANDS_BRANCH
+} else {
+    "main"
+}
+$InstallDir = Join-Path $env:TEMP "minimalist-dark-islands-temp"
 
-$RepoUrl = "https://github.com/bwya77/vscode-dark-islands.git"
-$Branch = "main"
-$InstallDir = "$env:TEMP\islands-dark-temp"
+Write-Host "Minimalist Dark Islands Bootstrap Installer"
+Write-Host "==========================================="
+Write-Host ""
 
-echo "📥 Step 1: Downloading Islands Dark..."
-echo "   Repository: $RepoUrl"
+if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
+    Write-Error "git is required to download the installer: https://git-scm.com/download/win"
+    exit 1
+}
 
-# Remove old temp directory if exists
+Write-Host "Step 1: Downloading Minimalist Dark Islands..."
+Write-Host "Repository: $RepoUrl"
+
 if (Test-Path $InstallDir) {
     Remove-Item -Recurse -Force $InstallDir
 }
 
-# Clone repository
 try {
     git clone $RepoUrl $InstallDir --quiet --branch $Branch
 } catch {
-    echo "❌ Failed to download Islands Dark"
-    echo "   Make sure Git is installed: https://git-scm.com/download/win"
+    Write-Error "Failed to download Minimalist Dark Islands. $($_.Exception.Message)"
     exit 1
 }
 
-echo "✓ Downloaded successfully"
-echo ""
+Write-Host "Downloaded successfully."
+Write-Host ""
 
-echo "🚀 Step 2: Running installer..."
-echo ""
+Write-Host "Step 2: Running installer..."
+Write-Host ""
 
-# Run installer
-cd $InstallDir
+Set-Location $InstallDir
 try {
     .\install.ps1
 } catch {
-    echo "❌ Installation failed"
-    echo $_.Exception.Message
+    Write-Error "Installation failed. $($_.Exception.Message)"
     exit 1
 }
 
-# Cleanup
-echo ""
-echo "🧹 Step 3: Cleaning up..."
-$remove = Read-Host "   Remove temporary files? (y/n)"
-if ($remove -eq 'y' -or $remove -eq 'Y') {
+Write-Host ""
+Write-Host "Step 3: Cleaning up..."
+$RemoveTemp = Read-Host "Remove temporary files? [y/N]"
+if ($RemoveTemp -eq "y" -or $RemoveTemp -eq "Y" -or $RemoveTemp -eq "yes" -or $RemoveTemp -eq "YES") {
     Remove-Item -Recurse -Force $InstallDir
-    echo "✓ Temporary files removed"
+    Write-Host "Temporary files removed."
 } else {
-    echo "   Files kept at: $InstallDir"
+    Write-Host "Files kept at: $InstallDir"
 }
 
-echo ""
-echo "🎉 Done! Enjoy your Islands Dark theme!"
+Write-Host ""
+Write-Host "Done. Enjoy Minimalist Dark Islands."

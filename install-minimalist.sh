@@ -40,11 +40,14 @@ ARROW="${BLUE}>${NC}"
 #   - DO NOT enable the icon glow by default (most users find it noisy)
 # ---------------------------------------------------------------------------
 DO_INSTALL_CUSTOM_UI_STYLE="false"
+DO_INSTALL_THEME_EXTENSION="false"
+DO_SET_COLOR_THEME="false"
 DO_INSTALL_BEAR_FONTS="false"
 DO_INSTALL_SETI_ICONS="false"
 DO_SET_ICON_THEME="false"
 DO_MERGE_CSS="false"
 DO_APPLY_MINIMAL_SETTINGS="false"
+DO_ENABLE_ANIMATIONS="false"
 DO_ENABLE_ICON_GLOW="false"
 
 # Activity bar position. One of: default, top, bottom, hidden. Written to
@@ -57,7 +60,7 @@ ACTIVITY_BAR_LOCATION="default"
 # step_header() is called.
 # ---------------------------------------------------------------------------
 CURRENT_STEP=0
-TOTAL_STEPS=8
+TOTAL_STEPS=11
 
 # ---------------------------------------------------------------------------
 # Generic helpers
@@ -200,6 +203,10 @@ if [[ ! -f "$SCRIPT_DIR/settings.json" ]]; then
     die "settings.json not found in $SCRIPT_DIR. Run this script from the repo root."
 fi
 
+if [[ ! -f "$SCRIPT_DIR/animations.css" ]]; then
+    die "animations.css not found in $SCRIPT_DIR. Run this script from the repo root."
+fi
+
 if ! command -v python3 >/dev/null 2>&1; then
     die "python3 is required for the JSON merge step. Install it and try again."
 fi
@@ -213,8 +220,45 @@ fi
 # step and for showing the path in the prompt.
 if [[ "$OSTYPE" == "darwin"* ]]; then
     FONT_DIR="$HOME/Library/Fonts"
+    SETTINGS_DIR="$HOME/Library/Application Support/Code/User"
 else
     FONT_DIR="$HOME/.local/share/fonts"
+    SETTINGS_DIR="$HOME/.config/Code/User"
+fi
+
+SETTINGS_FILE="$SETTINGS_DIR/settings.json"
+PRE_DARK_ISLANDS_BACKUP="$SETTINGS_FILE.pre-dark-islands"
+THEME_EXT_ID="tfdmendes.minimalist-dark-islands"
+THEME_EXT_VERSION="0.1.0"
+THEME_EXT_DIR="$HOME/.vscode/extensions/$THEME_EXT_ID-$THEME_EXT_VERSION"
+STATE_DIR="$HOME/.vscode/minimalist-dark-islands"
+ANIMATIONS_INSTALL_DIR="$STATE_DIR"
+ANIMATIONS_FILE="$ANIMATIONS_INSTALL_DIR/animations.css"
+ANIMATIONS_IMPORT="file://$ANIMATIONS_FILE"
+APPEARANCE_STATE_FILE="$STATE_DIR/pre-dark-islands-appearance.json"
+EXTENSIONS_METADATA_FILE="$HOME/.vscode/extensions/extensions.json"
+EXTENSIONS_METADATA_BACKUP="$STATE_DIR/extensions.json.pre-dark-islands"
+
+CURRENT_ACTIVITY_BAR_LOCATION="default"
+if [[ -f "$SETTINGS_FILE" ]]; then
+    CURRENT_ACTIVITY_BAR_LOCATION="$(python3 - "$SETTINGS_FILE" <<'PYEOF' 2>/dev/null || printf "default"
+import json
+import re
+import sys
+
+path = sys.argv[1]
+try:
+    text = open(path, "r", encoding="utf-8").read()
+    text = re.sub(r"(?m)^(\s*//.*)$", "", text)
+    text = re.sub(r"/\*[\s\S]*?\*/", "", text)
+    text = re.sub(r",(\s*[}\]])", r"\1", text)
+    data = json.loads(text) if text.strip() else {}
+    value = data.get("workbench.activityBar.location", "default")
+    print(value if value in ("default", "top", "bottom", "hidden") else "default")
+except Exception:
+    print("default")
+PYEOF
+)"
 fi
 
 # ---------------------------------------------------------------------------
@@ -238,7 +282,49 @@ fi
 press_enter
 
 # ---------------------------------------------------------------------------
-# Step 1: Custom UI Style extension
+# Step 1: Minimalist Dark Islands color theme extension
+# ---------------------------------------------------------------------------
+step_header "Minimalist Dark Islands color theme"
+body "Optional. This installs the fork as a local VS Code color theme,"
+body "matching the upstream installer behavior, but it does not force"
+body "you to use it. You can keep One Dark Pro Mix or any other theme."
+printf "\n"
+hint "Local extension path: $THEME_EXT_DIR"
+
+THEME_INSTALLED="false"
+if [[ -d "$THEME_EXT_DIR" ]]; then
+    THEME_INSTALLED="true"
+    printf "\n  %b Already installed - nothing to do.\n" "$CHECK_MARK"
+    press_enter
+elif [[ ! -f "$SCRIPT_DIR/package.json" ]]; then
+    printf "\n  %bSkipped: package.json missing in this repo.%b\n" "$YELLOW" "$NC"
+    press_enter
+else
+    ask_yn "Install the local Minimalist Dark Islands theme extension?" "n" DO_INSTALL_THEME_EXTENSION
+fi
+
+# ---------------------------------------------------------------------------
+# Step 2: Set Minimalist Dark Islands as the active color theme
+# ---------------------------------------------------------------------------
+step_header "Set color theme"
+body "Optional. If you confirm, this writes:"
+body ""
+body "    workbench.colorTheme = Minimalist Dark Islands"
+body ""
+body "Skip this if you want to keep your current color theme; the CSS"
+body "islands can still run on top of One Dark Pro Mix or another theme."
+
+if [[ "$THEME_INSTALLED" == "true" || "$DO_INSTALL_THEME_EXTENSION" == "true" ]]; then
+    ask_yn "Set Minimalist Dark Islands as the active color theme?" "n" DO_SET_COLOR_THEME
+else
+    printf "\n  %bTheme extension is not installed and will not be installed.%b\n" "$GRAY" "$NC"
+    body "Nothing to set."
+    DO_SET_COLOR_THEME="false"
+    press_enter
+fi
+
+# ---------------------------------------------------------------------------
+# Step 3: Custom UI Style extension
 # ---------------------------------------------------------------------------
 step_header "Custom UI Style extension"
 hint "subframe7536.custom-ui-style"
@@ -261,7 +347,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 2: Bear Sans UI fonts
+# Step 4: Bear Sans UI fonts
 # ---------------------------------------------------------------------------
 step_header "Bear Sans UI fonts"
 body "The CSS uses Bear Sans UI for the sidebar, tabs, command center,"
@@ -280,7 +366,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 3: Seti Folder icon theme
+# Step 5: Seti Folder icon theme
 # ---------------------------------------------------------------------------
 step_header "Seti Folder icon theme"
 hint "l-igh-t.vscode-theme-seti-folder"
@@ -303,7 +389,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 4: Set Seti Folder as the active icon theme
+# Step 6: Set Seti Folder as the active icon theme
 # Only relevant if Seti is installed (or about to be).
 # ---------------------------------------------------------------------------
 step_header "Set Seti Folder as your icon theme"
@@ -324,7 +410,7 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Step 5: Merge custom-ui-style.stylesheet into User settings
+# Step 7: Merge custom-ui-style.stylesheet into User settings
 # ---------------------------------------------------------------------------
 step_header "Merge the glass-islands CSS"
 body "This is the heart of the install: it copies the entire"
@@ -333,9 +419,12 @@ body "User settings.json. Without this step, even with the extension"
 body "installed, you will see no visual change."
 printf "\n"
 body "Your existing User settings (color theme, font, language settings,"
-body "everything else) are preserved. A timestamped backup is saved"
-body "before anything is written:"
-hint "  ~/Library/Application Support/Code/User/settings.json.backup-YYYYMMDD-HHMMSS"
+body "everything else) are preserved. On the first confirmed run, a"
+body "baseline backup is created and never overwritten:"
+hint "  $PRE_DARK_ISLANDS_BACKUP"
+printf "\n"
+body "A timestamped backup is also saved before every settings write:"
+hint "  $SETTINGS_FILE.backup-YYYYMMDD-HHMMSS"
 printf "\n"
 hint "Warning: JSONC line comments (// ...) in your settings.json are"
 hint "         lost in the merge. Restore from backup if you need them."
@@ -343,7 +432,7 @@ hint "         lost in the merge. Restore from backup if you need them."
 ask_yn "Merge the CSS into your settings.json now?" "y" DO_MERGE_CSS
 
 # ---------------------------------------------------------------------------
-# Step 6: Apply minimalist top bar settings
+# Step 8: Apply minimalist top bar settings
 # ---------------------------------------------------------------------------
 step_header "Apply minimalist top bar settings"
 body "Sets these keys in your User settings.json:"
@@ -354,8 +443,6 @@ body "    workbench.editor.empty.hint     = hidden"
 body "    workbench.startupEditor         = none"
 body "    workbench.tree.indent           = 6"
 body "    workbench.tree.renderIndentGuides = always"
-body "    editor.scrollbar.vertical       = visible"
-body "    editor.scrollbar.horizontal     = auto"
 body "    workbench.colorCustomizations   = One Dark surface palette"
 printf "\n"
 hint "Activity bar position is asked separately in the next step."
@@ -363,7 +450,7 @@ hint "Activity bar position is asked separately in the next step."
 ask_yn "Apply these minimalist settings?" "y" DO_APPLY_MINIMAL_SETTINGS
 
 # ---------------------------------------------------------------------------
-# Step 7: Activity bar position
+# Step 9: Activity bar position
 # Each location uses its own CSS variant so the glass effect renders
 # correctly regardless of where the icons live.
 # ---------------------------------------------------------------------------
@@ -375,9 +462,16 @@ body "look stays intact in any of these positions."
 printf "\n"
 hint "This sets workbench.activityBar.location and rewrites the"
 hint "activity-bar / composite-bar rules in your custom-ui-style.stylesheet."
+hint "Current detected value: $CURRENT_ACTIVITY_BAR_LOCATION"
 
 _AB_CHOICE=1
-ask_choice "Pick a position:" _AB_CHOICE 1 \
+case "$CURRENT_ACTIVITY_BAR_LOCATION" in
+    top) _AB_DEFAULT=2 ;;
+    bottom) _AB_DEFAULT=3 ;;
+    hidden) _AB_DEFAULT=4 ;;
+    *) _AB_DEFAULT=1 ;;
+esac
+ask_choice "Pick a position:" _AB_CHOICE "$_AB_DEFAULT" \
     "Default - vertical pill on the left (upstream design)" \
     "Top - horizontal pill above the sidebar" \
     "Bottom - horizontal pill below the sidebar" \
@@ -391,7 +485,21 @@ case "$_AB_CHOICE" in
 esac
 
 # ---------------------------------------------------------------------------
-# Step 8: File icon glow
+# Step 10: Living Glass animations
+# ---------------------------------------------------------------------------
+step_header "Living Glass animations"
+body "Optional. Installs animations.css to a stable local path and"
+body "registers it via custom-ui-style.external.imports. This enables"
+body "the animated aurora border, activity icon morph, and widget"
+body "entrance animations."
+printf "\n"
+hint "Installed CSS file: $ANIMATIONS_FILE"
+hint "Custom UI Style only loads external files after Reload/Enable."
+
+ask_yn "Enable Living Glass animations?" "y" DO_ENABLE_ANIMATIONS
+
+# ---------------------------------------------------------------------------
+# Step 11: File icon glow
 # ---------------------------------------------------------------------------
 step_header "File icon glow effect"
 body "The upstream theme adds a soft colored drop-shadow under every"
@@ -411,6 +519,8 @@ ask_yn "Enable the file icon glow?" "n" DO_ENABLE_ICON_GLOW
 banner "Summary"
 body "Review the actions below. Nothing has been changed yet."
 printf "\n"
+print_choice "$DO_INSTALL_THEME_EXTENSION" "Install local Minimalist Dark Islands color theme"
+print_choice "$DO_SET_COLOR_THEME"         "Set Minimalist Dark Islands as color theme"
 print_choice "$DO_INSTALL_CUSTOM_UI_STYLE" "Install Custom UI Style extension"
 print_choice "$DO_INSTALL_BEAR_FONTS"      "Install Bear Sans UI fonts to $FONT_DIR"
 print_choice "$DO_INSTALL_SETI_ICONS"      "Install Seti Folder icon theme"
@@ -418,6 +528,7 @@ print_choice "$DO_SET_ICON_THEME"          "Set Seti Folder as icon theme"
 print_choice "$DO_MERGE_CSS"               "Merge glass-islands CSS into User settings.json"
 print_choice "$DO_APPLY_MINIMAL_SETTINGS"  "Apply minimalist top bar settings"
 printf "    %b->%b Activity bar position: %b%s%b\n" "$BLUE" "$NC" "$BOLD" "$ACTIVITY_BAR_LOCATION" "$NC"
+print_choice "$DO_ENABLE_ANIMATIONS"       "Enable Living Glass animations"
 print_choice "$DO_ENABLE_ICON_GLOW"        "Enable file icon glow effect"
 printf "\n"
 
@@ -429,17 +540,23 @@ printf "\n"
 # action AND kept the activity bar at "default".
 ANY_SELECTED="false"
 for v in \
+    "$DO_INSTALL_THEME_EXTENSION" \
+    "$DO_SET_COLOR_THEME" \
     "$DO_INSTALL_CUSTOM_UI_STYLE" \
     "$DO_INSTALL_BEAR_FONTS" \
     "$DO_INSTALL_SETI_ICONS" \
     "$DO_SET_ICON_THEME" \
     "$DO_MERGE_CSS" \
-    "$DO_APPLY_MINIMAL_SETTINGS"
+    "$DO_APPLY_MINIMAL_SETTINGS" \
+    "$DO_ENABLE_ANIMATIONS"
 do
     if [[ "$v" == "true" ]]; then
         ANY_SELECTED="true"
     fi
 done
+if [[ "$DO_ENABLE_ANIMATIONS" == "false" ]]; then
+    ANY_SELECTED="true"
+fi
 if [[ "$DO_ENABLE_ICON_GLOW" == "false" ]]; then
     ANY_SELECTED="true"
 fi
@@ -467,14 +584,29 @@ fi
 # ---------------------------------------------------------------------------
 banner "Executing"
 
-# 1) Custom UI Style extension
+# 1) Local color theme extension
+if [[ "$DO_INSTALL_THEME_EXTENSION" == "true" ]]; then
+    printf "  %b Installing local Minimalist Dark Islands theme...\n" "$ARROW"
+    mkdir -p "$STATE_DIR"
+    if [[ -f "$EXTENSIONS_METADATA_FILE" && ! -f "$EXTENSIONS_METADATA_BACKUP" ]]; then
+        cp "$EXTENSIONS_METADATA_FILE" "$EXTENSIONS_METADATA_BACKUP"
+        printf "  %b Extension metadata backup saved: %s\n" "$CHECK_MARK" "$EXTENSIONS_METADATA_BACKUP"
+    fi
+    rm -rf "$THEME_EXT_DIR"
+    mkdir -p "$THEME_EXT_DIR"
+    cp "$SCRIPT_DIR/package.json" "$THEME_EXT_DIR/"
+    cp -r "$SCRIPT_DIR/themes" "$THEME_EXT_DIR/"
+    printf "  %b Theme extension installed at %s.\n\n" "$CHECK_MARK" "$THEME_EXT_DIR"
+fi
+
+# 2) Custom UI Style extension
 if [[ "$DO_INSTALL_CUSTOM_UI_STYLE" == "true" ]]; then
     printf "  %b Installing Custom UI Style...\n" "$ARROW"
     code --install-extension subframe7536.custom-ui-style --force
     printf "  %b Custom UI Style installed.\n\n" "$CHECK_MARK"
 fi
 
-# 2) Bear Sans UI fonts
+# 3) Bear Sans UI fonts
 if [[ "$DO_INSTALL_BEAR_FONTS" == "true" ]]; then
     printf "  %b Installing Bear Sans UI fonts to %s...\n" "$ARROW" "$FONT_DIR"
     mkdir -p "$FONT_DIR"
@@ -485,25 +617,123 @@ if [[ "$DO_INSTALL_BEAR_FONTS" == "true" ]]; then
     printf "  %b Fonts installed.\n\n" "$CHECK_MARK"
 fi
 
-# 3) Seti Folder
+# 4) Seti Folder
 if [[ "$DO_INSTALL_SETI_ICONS" == "true" ]]; then
     printf "  %b Installing Seti Folder icon theme...\n" "$ARROW"
     code --install-extension l-igh-t.vscode-theme-seti-folder --force
     printf "  %b Seti Folder installed.\n\n" "$CHECK_MARK"
 fi
 
-# 4) Settings merge (covers DO_MERGE_CSS, DO_APPLY_MINIMAL_SETTINGS,
-#    DO_SET_ICON_THEME, the icon-glow toggle when off, and any non-default
-#    activity bar choice).
-if [[ "$DO_MERGE_CSS" == "true" || "$DO_APPLY_MINIMAL_SETTINGS" == "true" || "$DO_SET_ICON_THEME" == "true" || "$DO_ENABLE_ICON_GLOW" == "false" || "$ACTIVITY_BAR_LOCATION" != "default" ]]; then
-    if [[ "$OSTYPE" == "darwin"* ]]; then
-        SETTINGS_DIR="$HOME/Library/Application Support/Code/User"
-    else
-        SETTINGS_DIR="$HOME/.config/Code/User"
-    fi
-    SETTINGS_FILE="$SETTINGS_DIR/settings.json"
+# 5) Living Glass animations CSS file
+if [[ "$DO_ENABLE_ANIMATIONS" == "true" ]]; then
+    printf "  %b Installing Living Glass animations CSS...\n" "$ARROW"
+    mkdir -p "$ANIMATIONS_INSTALL_DIR"
+    cp "$SCRIPT_DIR/animations.css" "$ANIMATIONS_FILE"
+    printf "  %b Animations CSS installed at %s.\n\n" "$CHECK_MARK" "$ANIMATIONS_FILE"
+fi
 
+# 6) Settings merge (covers DO_MERGE_CSS, DO_APPLY_MINIMAL_SETTINGS,
+#    DO_SET_ICON_THEME, DO_SET_COLOR_THEME, animations, the icon-glow
+#    toggle when off, and any activity-bar choice).
+SETTINGS_UPDATE_NEEDED="false"
+for v in \
+    "$DO_MERGE_CSS" \
+    "$DO_APPLY_MINIMAL_SETTINGS" \
+    "$DO_SET_ICON_THEME" \
+    "$DO_SET_COLOR_THEME" \
+    "$DO_ENABLE_ANIMATIONS"
+do
+    if [[ "$v" == "true" ]]; then
+        SETTINGS_UPDATE_NEEDED="true"
+    fi
+done
+if [[ "$DO_ENABLE_ANIMATIONS" == "false" || "$DO_ENABLE_ICON_GLOW" == "false" || "$ACTIVITY_BAR_LOCATION" != "default" ]]; then
+    SETTINGS_UPDATE_NEEDED="true"
+fi
+
+if [[ "$SETTINGS_UPDATE_NEEDED" == "true" ]]; then
     mkdir -p "$SETTINGS_DIR"
+
+    # Preserve the user's original pre-theme settings once. This mirrors
+    # the upstream "pre install" backup behavior, but uses this fork's
+    # explicit name so uninstall can restore the real baseline later.
+    if [[ ! -f "$PRE_DARK_ISLANDS_BACKUP" ]]; then
+        if [[ -f "$SETTINGS_FILE" ]]; then
+            cp "$SETTINGS_FILE" "$PRE_DARK_ISLANDS_BACKUP"
+        else
+            printf "{\n}\n" > "$PRE_DARK_ISLANDS_BACKUP"
+        fi
+        printf "  %b Original settings backup saved: %s\n" "$CHECK_MARK" "$PRE_DARK_ISLANDS_BACKUP"
+    else
+        printf "  %b Original settings backup already exists: %s\n" "$CHECK_MARK" "$PRE_DARK_ISLANDS_BACKUP"
+    fi
+
+    # Save a structured appearance/theme snapshot once. This gives
+    # uninstall a narrower restore path for users who only want theme
+    # choices and theme-related customizations put back exactly as they
+    # were, without replacing unrelated settings changed later.
+    mkdir -p "$STATE_DIR"
+    if [[ ! -f "$APPEARANCE_STATE_FILE" ]]; then
+        python3 - "$SETTINGS_FILE" "$APPEARANCE_STATE_FILE" <<'PYEOF'
+import datetime
+import json
+import os
+import re
+import sys
+
+settings_path, state_path = sys.argv[1], sys.argv[2]
+
+theme_related_keys = [
+    "workbench.colorTheme",
+    "workbench.preferredDarkColorTheme",
+    "workbench.preferredLightColorTheme",
+    "workbench.preferredHighContrastColorTheme",
+    "workbench.preferredHighContrastLightColorTheme",
+    "window.autoDetectColorScheme",
+    "workbench.iconTheme",
+    "workbench.productIconTheme",
+    "workbench.colorCustomizations",
+    "editor.tokenColorCustomizations",
+    "editor.semanticTokenColorCustomizations",
+    "custom-ui-style.stylesheet",
+    "custom-ui-style.external.imports",
+    "custom-ui-style.external.loadStrategy",
+    "workbench.activityBar.location",
+]
+
+def read_jsonc(path):
+    if not os.path.exists(path):
+        return {}
+    text = open(path, "r", encoding="utf-8").read()
+    if not text.strip():
+        return {}
+    text = re.sub(r"(?m)^(\s*//.*)$", "", text)
+    text = re.sub(r"/\*[\s\S]*?\*/", "", text)
+    text = re.sub(r",(\s*[}\]])", r"\1", text)
+    return json.loads(text) if text.strip() else {}
+
+settings = read_jsonc(settings_path)
+snapshot = {
+    "schema": 1,
+    "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    "settingsPath": settings_path,
+    "themeRelatedSettings": {
+        key: {
+            "present": key in settings,
+            "value": settings.get(key),
+        }
+        for key in theme_related_keys
+    },
+}
+
+with open(state_path, "w", encoding="utf-8") as f:
+    json.dump(snapshot, f, indent=2, ensure_ascii=False)
+    f.write("\n")
+PYEOF
+        printf "  %b Theme/appearance state saved: %s\n" "$CHECK_MARK" "$APPEARANCE_STATE_FILE"
+    else
+        printf "  %b Theme/appearance state already exists: %s\n" "$CHECK_MARK" "$APPEARANCE_STATE_FILE"
+    fi
 
     # Always back up before touching the file.
     if [[ -f "$SETTINGS_FILE" ]]; then
@@ -518,7 +748,8 @@ if [[ "$DO_MERGE_CSS" == "true" || "$DO_APPLY_MINIMAL_SETTINGS" == "true" || "$D
     # Run the Python merge. Args:
     # 1=user settings path, 2=repo settings path,
     # 3=do_merge_css, 4=do_apply_minimal_settings, 5=do_set_icon_theme,
-    # 6=do_enable_icon_glow, 7=activity_bar_location
+    # 6=do_enable_icon_glow, 7=activity_bar_location,
+    # 8=do_set_color_theme, 9=do_enable_animations, 10=animations_import
     python3 - \
         "$SETTINGS_FILE" \
         "$REPO_SETTINGS" \
@@ -526,7 +757,10 @@ if [[ "$DO_MERGE_CSS" == "true" || "$DO_APPLY_MINIMAL_SETTINGS" == "true" || "$D
         "$DO_APPLY_MINIMAL_SETTINGS" \
         "$DO_SET_ICON_THEME" \
         "$DO_ENABLE_ICON_GLOW" \
-        "$ACTIVITY_BAR_LOCATION" <<'PYEOF'
+        "$ACTIVITY_BAR_LOCATION" \
+        "$DO_SET_COLOR_THEME" \
+        "$DO_ENABLE_ANIMATIONS" \
+        "$ANIMATIONS_IMPORT" <<'PYEOF'
 import sys
 import json
 import os
@@ -538,10 +772,15 @@ do_apply_settings     = sys.argv[4] == "true"
 do_set_icon           = sys.argv[5] == "true"
 do_enable_icon_glow   = sys.argv[6] == "true"
 activity_bar_location = sys.argv[7]  # "default" | "top" | "bottom" | "hidden"
+do_set_color_theme    = sys.argv[8] == "true"
+do_enable_animations  = sys.argv[9] == "true"
+animations_import     = sys.argv[10]
 
 # Selector for the icon glow CSS rule. Used to remove it cleanly when
 # the user opts out of the glow effect.
 ICON_GLOW_SELECTOR = ".monaco-icon-label.file-icon::before"
+COLOR_THEME_LABEL = "Minimalist Dark Islands"
+ANIMATIONS_IMPORT_SUFFIX = "/.vscode/minimalist-dark-islands/animations.css"
 
 # All known selectors for the activity-bar block. We delete every match
 # before applying a new variant so we never have leftover rules from a
@@ -604,6 +843,85 @@ LEGACY_LAYOUT_OVERRIDE_SELECTORS = [
     ".monaco-workbench .split-view-container",
 ]
 
+FLOATING_EDITOR_FIXES = {
+    ".monaco-workbench:has(> .part.editor):not(:has(> .part.sidebar)):not(:has(> .part.activitybar)):not(:has(> .part.panel))": {
+        "--islands-floating-editor-width": "min(78vw, 1040px)",
+        "--islands-floating-editor-height": "min(68vh, 720px)",
+        "display": "flex !important",
+        "flex-direction": "column !important",
+        "align-items": "center !important",
+        "justify-content": "center !important",
+        "gap": "0 !important",
+        "padding": "24px !important",
+        "box-sizing": "border-box !important",
+    },
+    ".monaco-workbench.auxiliary-window .part.titlebar, .monaco-workbench.auxiliary .part.titlebar, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.titlebar": {
+        "width": "var(--islands-floating-editor-width) !important",
+        "max-width": "calc(100vw - 48px) !important",
+        "align-self": "center !important",
+        "flex": "0 0 34px !important",
+        "height": "34px !important",
+        "min-height": "34px !important",
+        "padding-top": "2px !important",
+        "box-sizing": "border-box !important",
+        "overflow": "visible !important",
+        "z-index": "40 !important",
+    },
+    ".monaco-workbench.auxiliary-window .part.titlebar .window-title, .monaco-workbench.auxiliary .part.titlebar .window-title, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.titlebar .window-title": {
+        "height": "32px !important",
+        "line-height": "32px !important",
+        "display": "flex !important",
+        "align-items": "center !important",
+        "justify-content": "center !important",
+        "padding-top": "0 !important",
+        "box-sizing": "border-box !important",
+        "transform": "none !important",
+    },
+    ".monaco-workbench.auxiliary-window .part.editor, .monaco-workbench.auxiliary .part.editor, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.editor": {
+        "width": "var(--islands-floating-editor-width) !important",
+        "height": "var(--islands-floating-editor-height) !important",
+        "max-width": "calc(100vw - 48px) !important",
+        "max-height": "calc(100vh - 118px) !important",
+        "min-width": "min(680px, calc(100vw - 48px)) !important",
+        "min-height": "min(420px, calc(100vh - 118px)) !important",
+        "flex": "0 1 var(--islands-floating-editor-height) !important",
+        "align-self": "center !important",
+        "margin": "0 auto var(--islands-panel-gap) auto !important",
+        "border-radius": "var(--islands-panel-radius) !important",
+        "overflow": "hidden !important",
+        "box-sizing": "border-box !important",
+        "position": "relative !important",
+        "background-color": "var(--islands-bg-surface) !important",
+        "border-top": "1px solid rgba(255,255,255,0.12) !important",
+        "border-left": "1px solid rgba(255,255,255,0.08) !important",
+        "border-bottom": "1px solid rgba(255,255,255,0.03) !important",
+        "border-right": "1px solid rgba(255,255,255,0.03) !important",
+        "box-shadow": "0 2px 8px 0 rgba(0,0,0,0.3) !important",
+    },
+    ".monaco-workbench.auxiliary-window .part.editor > .content, .monaco-workbench.auxiliary .part.editor > .content, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.editor > .content": {
+        "width": "100% !important",
+        "height": "100% !important",
+        "padding-top": "0 !important",
+        "overflow": "hidden !important",
+    },
+    ".monaco-workbench.auxiliary-window .part.editor > .content .editor-group-container > .title, .monaco-workbench.auxiliary .part.editor > .content .editor-group-container > .title, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.editor > .content .editor-group-container > .title": {
+        "padding-top": "3px !important",
+        "box-sizing": "border-box !important",
+        "overflow": "visible !important",
+    },
+    ".monaco-workbench.auxiliary-window .part.statusbar, .monaco-workbench.auxiliary .part.statusbar, .monaco-workbench:has(.part.titlebar):has(.part.editor):not(:has(.part.sidebar)):not(:has(.part.activitybar)):not(:has(.part.panel)) .part.statusbar": {
+        "width": "var(--islands-floating-editor-width) !important",
+        "max-width": "calc(100vw - 48px) !important",
+        "align-self": "center !important",
+        "flex": "0 0 auto !important",
+    },
+}
+
+EDITOR_PART_EDGE_CLEANUP_SELECTORS = (
+    ".part.editor",
+    ".monaco-workbench .part.editor",
+)
+
 # CSS that the top/bottom variants apply on top of the activity-bar
 # rules. These are higher-specificity copies of the floating-panel
 # styling, plus a canvas background on the top-level grid so the
@@ -631,9 +949,6 @@ PANEL_GLASS_OVERRIDES = {
         "border-radius": "var(--islands-panel-radius) !important",
         "overflow": "hidden !important",
         "box-sizing": "border-box !important",
-        "position": "relative !important",
-        "z-index": "1 !important",
-        "isolation": "isolate !important",
         "background-color": "var(--islands-bg-surface) !important",
         "max-height": "calc(100% - var(--islands-panel-top) - var(--islands-panel-gap) - 2px) !important",
         "border-top": "1px solid rgba(255,255,255,0.12) !important",
@@ -895,6 +1210,11 @@ if do_merge_css:
     print("    - merged custom-ui-style.stylesheet ({} rules)".format(
         len(repo["custom-ui-style.stylesheet"])
     ))
+else:
+    css_dependent_choice = activity_bar_location != "default" or do_enable_animations
+    if css_dependent_choice and not isinstance(user.get("custom-ui-style.stylesheet"), dict):
+        user["custom-ui-style.stylesheet"] = repo["custom-ui-style.stylesheet"]
+        print("    - installed base custom-ui-style.stylesheet because this selection needs CSS")
 
 if do_apply_settings:
     keys_to_copy = [
@@ -905,11 +1225,6 @@ if do_apply_settings:
         "workbench.startupEditor",
         "workbench.tree.indent",
         "workbench.tree.renderIndentGuides",
-        "editor.scrollbar.vertical",
-        "editor.scrollbar.horizontal",
-        "editor.scrollbar.verticalScrollbarSize",
-        "editor.scrollbar.horizontalScrollbarSize",
-        "editor.scrollbar.useShadows",
     ]
     for key in keys_to_copy:
         if key in repo:
@@ -927,6 +1242,10 @@ if do_apply_settings:
 if do_set_icon:
     user["workbench.iconTheme"] = "vs-seti-folder"
     print("    - set workbench.iconTheme = \"vs-seti-folder\"")
+
+if do_set_color_theme:
+    user["workbench.colorTheme"] = COLOR_THEME_LABEL
+    print("    - set workbench.colorTheme = \"{}\"".format(COLOR_THEME_LABEL))
 
 # Activity bar location. Always written so the user's choice in this
 # run is authoritative. "hidden" maps to VS Code's "hidden" value which
@@ -1006,6 +1325,48 @@ if isinstance(stylesheet, dict):
             print("    - removed icon glow rule ({})".format(ICON_GLOW_SELECTOR))
         else:
             print("    - icon glow rule not present, nothing to remove")
+
+# Keep the floating editor constrained on every settings write so
+# existing installs get the fix without a full CSS re-merge.
+stylesheet = user.get("custom-ui-style.stylesheet")
+if isinstance(stylesheet, dict):
+    stylesheet.update(FLOATING_EDITOR_FIXES)
+    for selector in EDITOR_PART_EDGE_CLEANUP_SELECTORS:
+        rule = stylesheet.get(selector)
+        if isinstance(rule, dict):
+            for prop in ("position", "z-index", "isolation"):
+                rule.pop(prop, None)
+    print("    - applied floating editor sizing fixes")
+    print("    - cleaned editor-part stacking overrides")
+
+# Apply animation preference. Animations live in animations.css because
+# @property and @keyframes are more reliable as real CSS than as a JSON
+# stylesheet object. We install/copy the file from Bash, then register it
+# here as an external Custom UI Style import.
+imports = user.get("custom-ui-style.external.imports")
+if not isinstance(imports, list):
+    imports = []
+
+def is_our_animation_import(item):
+    if isinstance(item, str):
+        return item == animations_import or item.endswith(ANIMATIONS_IMPORT_SUFFIX)
+    if isinstance(item, dict):
+        url = item.get("url")
+        return isinstance(url, str) and (url == animations_import or url.endswith(ANIMATIONS_IMPORT_SUFFIX))
+    return False
+
+imports = [item for item in imports if not is_our_animation_import(item)]
+if do_enable_animations:
+    imports.append(animations_import)
+    user["custom-ui-style.external.imports"] = imports
+    user["custom-ui-style.external.loadStrategy"] = "refetch"
+    print("    - enabled Living Glass animations import ({})".format(animations_import))
+else:
+    if imports:
+        user["custom-ui-style.external.imports"] = imports
+    elif "custom-ui-style.external.imports" in user:
+        del user["custom-ui-style.external.imports"]
+    print("    - disabled Living Glass animations import")
 
 # Drop the documentation-only "// ..." keys we use in the repo's settings.json.
 clean = {

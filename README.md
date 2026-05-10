@@ -10,8 +10,46 @@ The upstream theme is excellent but it forces a near-black canvas (`#121216`) an
 - Using a softer dark gray palette (`--islands-bg-canvas: #1c1f25`, `--islands-bg-surface: #282c34`).
 - Defaulting to a minimalist top bar: no command center pill, slim 30px title bar that just shows "Visual Studio Code".
 - Supporting all four activity-bar positions (`default`, `top`, `bottom`, `hidden`). The interactive installer rewrites the activity-bar/composite-bar CSS rules to a position-specific variant so the glass effect renders consistently regardless of where the icons live.
+- Installing the base CSS automatically when a chosen layout needs it, even if you skip the explicit "merge CSS" prompt. This avoids the broken state where the activity bar is moved to `top`/`bottom` but the sidebar/editor glass rules are missing.
+- Offering the Living Glass animations as an installer option. The installer copies `animations.css` to `~/.vscode/minimalist-dark-islands/animations.css` and registers it through `custom-ui-style.external.imports`. The animation selectors cover the left activity bar and the `top`/`bottom` composite-bar DOM that VS Code uses when the activity bar is moved.
+- Fixing floating/modal editor windows so the title strip and editor title are not clipped by the main-editor island styling, while keeping the window constrained instead of full-screen.
+- Leaving Monaco's editor scrollbar behavior to VS Code, matching the upstream theme, and only styling the scrollbar thumb lightly when VS Code decides to show it.
+- Avoiding extra stacking contexts and aurora overlays on the main `.part.editor`, so the editor edge/scrollbar area remains controlled by VS Code.
+- Offering the local color theme extension as an optional install, matching the upstream repo, while still letting you keep your current color theme.
+- Creating a one-time `settings.json.pre-dark-islands` baseline backup on the first confirmed install, so uninstall can restore the exact settings you had before this theme touched them.
+- Saving the previous theme-related settings separately (`workbench.colorTheme`, icon/product icon themes, color/token customizations, Custom UI Style settings, and activity bar location), so uninstall can restore only appearance choices if you do not want to replace the whole settings file.
 - Making the icon glow effect (`drop-shadow` on file icons) opt-in instead of always on. The default in the installer is off.
 - The interactive installer (`install-minimalist.sh`) is authoritative on every run: re-running with different choices fully reapplies your selection, including switching between activity-bar layouts.
+
+## Fork installer
+
+From this repo, run:
+
+```bash
+./install-minimalist.sh
+```
+
+Or use the one-liner bootstrap scripts for this fork:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/tfdmendes/minimalist-dark-islands/main/bootstrap.sh | bash
+```
+
+```powershell
+irm https://raw.githubusercontent.com/tfdmendes/minimalist-dark-islands/main/bootstrap.ps1 | iex
+```
+
+The compatibility wrapper `./install.sh` delegates to `./install-minimalist.sh`.
+
+After the script finishes, run **Custom UI Style: Reload** from VS Code's Command Palette. External animation files and stylesheet changes are only injected after that reload.
+
+To remove the fork and optionally restore your original settings:
+
+```bash
+./uninstall.sh
+```
+
+The uninstall script looks first for `settings.json.pre-dark-islands`, then falls back to the latest timestamped backup if the original baseline does not exist. If you skip full settings restore, it can still restore only the saved theme/appearance settings from `~/.vscode/minimalist-dark-islands/pre-dark-islands-appearance.json`.
 
 If you want the original look, install upstream from the link above. The rest of this README is upstream's install/customization documentation, still valid for this fork.
 

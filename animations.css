@@ -41,6 +41,45 @@
   }
 }
 
+/* Activity bar in top/bottom mode: horizontal pill settles from that edge */
+@keyframes islands-top-pill-morph {
+  0% {
+    transform: translateY(-4px) scaleX(0.72) scaleY(0.72);
+    opacity: 0;
+    border-radius: 35%;
+  }
+  45% {
+    transform: translateY(1px) scaleX(1.1) scaleY(0.92);
+    opacity: 1;
+    border-radius: 50%;
+  }
+  70% { transform: translateY(0) scaleX(0.94) scaleY(1.05); }
+  100% {
+    transform: translateY(0) scaleX(1) scaleY(1);
+    opacity: 1;
+    border-radius: 50%;
+  }
+}
+
+@keyframes islands-bottom-pill-morph {
+  0% {
+    transform: translateY(4px) scaleX(0.72) scaleY(0.72);
+    opacity: 0;
+    border-radius: 35%;
+  }
+  45% {
+    transform: translateY(-1px) scaleX(1.1) scaleY(0.92);
+    opacity: 1;
+    border-radius: 50%;
+  }
+  70% { transform: translateY(0) scaleX(0.94) scaleY(1.05); }
+  100% {
+    transform: translateY(0) scaleX(1) scaleY(1);
+    opacity: 1;
+    border-radius: 50%;
+  }
+}
+
 /* Soft breathing glow on active indicator */
 @keyframes islands-breathe {
   0%, 100% { filter: drop-shadow(0 0 2px rgba(13,188,121,0)); }
@@ -79,17 +118,19 @@
    ============================================================= */
 
 .part.sidebar,
-.part.editor,
 .part.auxiliarybar,
-.part.panel.bottom {
+.part.panel.bottom,
+.part.activitybar .composite-bar,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar {
   position: relative !important;
   isolation: isolate !important;
 }
 
 .part.sidebar::after,
-.part.editor::after,
 .part.auxiliarybar::after,
-.part.panel.bottom::after {
+.part.panel.bottom::after,
+.part.activitybar .composite-bar::after,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar::after {
   content: '' !important;
   display: block !important;
   position: absolute !important;
@@ -116,14 +157,17 @@
 }
 
 /* Stagger panels so the light is out of phase */
-.part.editor::after {
-  animation-delay: -2s !important;
-}
 .part.auxiliarybar::after {
   animation-delay: -4s !important;
 }
 .part.panel.bottom::after {
   animation-delay: -6s !important;
+}
+.part.activitybar .composite-bar::after {
+  animation-delay: -3s !important;
+}
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar::after {
+  animation-delay: -3s !important;
 }
 
 
@@ -133,16 +177,35 @@
 
 /* Drop morph when switching, then settle into a breathing glow */
 .part.activitybar .action-item.checked .action-label {
+  transform-origin: center center !important;
   animation:
     islands-drop-morph 0.4s cubic-bezier(0.22, 1, 0.36, 1),
     islands-breathe 4s ease-in-out 0.5s infinite !important;
 }
 
+.monaco-workbench .pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label,
+.monaco-workbench .pane-composite-part > .header-or-footer.header > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.active .action-label {
+  transform-origin: center top !important;
+  animation:
+    islands-top-pill-morph 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    islands-breathe 4s ease-in-out 0.5s infinite !important;
+}
+
+.monaco-workbench .pane-composite-part > .header-or-footer.footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.checked .action-label,
+.monaco-workbench .pane-composite-part > .header-or-footer.footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item.active .action-label {
+  transform-origin: center bottom !important;
+  animation:
+    islands-bottom-pill-morph 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    islands-breathe 4s ease-in-out 0.5s infinite !important;
+}
+
 /* Hover glow on all activity bar icons */
-.part.activitybar .action-item .action-label {
+.part.activitybar .action-item .action-label,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item .action-label {
   transition: filter 0.3s ease !important;
 }
-.part.activitybar .action-item:hover .action-label {
+.part.activitybar .action-item:hover .action-label,
+.monaco-workbench .pane-composite-part > .header-or-footer > .composite-bar-container > .composite-bar > .monaco-action-bar .action-item:hover .action-label {
   filter: drop-shadow(0 0 5px rgba(13,188,121,0.25)) !important;
 }
 

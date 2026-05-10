@@ -1,0 +1,34 @@
+{
+  "name": "minimalist-dark-islands",
+  "displayName": "Minimalist Dark Islands",
+  "description": "A softer Islands Dark fork tuned for minimalist VS Code layouts and One Dark-style palettes.",
+  "version": "0.1.0",
+  "publisher": "tfdmendes",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "keywords": [
+    "dark",
+    "theme",
+    "islands",
+    "minimalist",
+    "glass"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tfdmendes/minimalist-dark-islands"
+  },
+  "contributes": {
+    "themes": [
+      {
+        "label": "Minimalist Dark Islands",
+        "uiTheme": "vs-dark",
+        "path": "./themes/islands-dark.json"
+      }
+    ]
+  }
+}
